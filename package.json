@@ -1,0 +1,18 @@
+{
+  "name": "rvm-smart-system",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && node server.js",
+    "client": "cd rvm-site && npm run dev",
+    "install:all": "npm install && cd backend && npm install && cd ../rvm-site && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  },
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "dotenv": "^17.3.1",
+    "nodemailer": "^8.0.4"
+  }
+}

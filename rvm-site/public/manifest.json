@@ -1,0 +1,8 @@
+{
+  "name": "Smart RVM",
+  "short_name": "RVM",
+  "theme_color": "#00ff41",
+  "background_color": "#050805",
+  "display": "standalone",
+  "start_url": "/"
+}
