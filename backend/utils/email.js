@@ -1,71 +1,41 @@
-import { Resend } from "resend";
+import Brevo from "@getbrevo/brevo";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const apiInstance = new Brevo.TransactionalEmailsApi();
 
-// type: 'register' | 'reset'
+apiInstance.setApiKey(
+  Brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY
+);
+
 export const sendOTP = async (to, otp, type = "reset") => {
   const isRegister = type === "register";
 
-  const subject = isRegister
+  const sendSmtpEmail = new Brevo.SendSmtpEmail();
+
+  sendSmtpEmail.subject = isRegister
     ? "Verify Your RVM Account"
     : "Reset Your RVM PIN";
 
-  const heading = isRegister
-    ? "Email Verification"
-    : "Password Reset Request";
+  sendSmtpEmail.htmlContent = `
+    <h2>RVM Verification</h2>
+    <p>Your OTP is:</p>
+    <h1>${otp}</h1>
+    <p>Valid for 5 minutes.</p>
+  `;
 
-  const bodyText = isRegister
-    ? "You are registering a new account on the RVM System. Please use the OTP below to verify your email address."
-    : "You requested to reset your 4-digit PIN. Use the OTP below to continue.";
+  sendSmtpEmail.sender = {
+    name: "RVM System",
+    email: "rvm.bitm@gmail.com",
+  };
 
-  const footerNote = isRegister
-    ? "This OTP expires in 5 minutes. If you didn't create this account, ignore this email."
-    : "This OTP expires in 5 minutes. If you didn't request this reset, ignore this email.";
+  sendSmtpEmail.to = [{ email: to }];
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: "RVM System <onboarding@resend.dev>",
-      to: [to],
-      subject,
-      html: `
-        <div style="font-family:Arial,sans-serif;padding:30px;background:#050805;color:#fff;">
-          <h2 style="color:#00ff88">${heading}</h2>
-
-          <p>${bodyText}</p>
-
-          <div style="
-            margin:30px 0;
-            padding:20px;
-            border:2px solid #00ff88;
-            text-align:center;
-            font-size:36px;
-            font-weight:bold;
-            color:#00ff88;
-            letter-spacing:8px;
-          ">
-            ${otp}
-          </div>
-
-          <p>${footerNote}</p>
-
-          <hr>
-
-          <p>RVM System Security Team</p>
-        </div>
-      `,
-    });
-
-    if (error) {
-      console.error(error);
-      throw new Error(error.message);
-    }
-
-    console.log("✅ OTP Email Sent");
-    console.log(data);
-
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log("OTP Sent");
     return true;
   } catch (err) {
-    console.error("❌ Resend Error:", err);
+    console.error(err.response?.body || err);
     throw new Error("Failed to send OTP");
   }
 }; 
